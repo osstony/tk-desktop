@@ -23,7 +23,7 @@ from distutils.version import LooseVersion
 import sgtk
 from tank_vendor.shotgun_authentication import ShotgunAuthenticator, DefaultsManager
 from tank_vendor import yaml
-
+from sgtk.platform.qt import QtGui
 
 class DesktopEngineSiteImplementation(object):
     def __init__(self, engine):
@@ -206,12 +206,6 @@ class DesktopEngineSiteImplementation(object):
         # this engine.
         self.startup_version = kwargs.get("startup_version")
 
-        server = kwargs.get("server")
-        # If the startup has a websocket server.
-        if server:
-            # Make sure that the websocket server logs go the Desktop logs.
-            server.get_logger().addHandler(self._engine._handler)
-
         if self.uses_legacy_authentication():
             self._migrate_credentials()
 
@@ -264,6 +258,9 @@ class DesktopEngineSiteImplementation(object):
         f.close()
         app.setStyleSheet(css)
 
+        self._server = None
+        self._initialize_websockets()
+
         # desktop_window needs to import shotgun_authentication globally. However, doing so
         # can cause a crash when running Shotgun Desktop installer 1.02 code. We used to
         # not restart Desktop when upgrading the core, which caused the older version of core
@@ -284,10 +281,13 @@ class DesktopEngineSiteImplementation(object):
 
         # hide the splash if it exists
         if splash is not None:
-            splash.hide()
+            splash.close()
 
         # and run the app
         result = app.exec_()
+
+        if self._server:
+            self._server.tear_down()
         return result
 
     def uses_legacy_authentication(self):
@@ -414,6 +414,34 @@ class DesktopEngineSiteImplementation(object):
         """
         if self._is_login_based:
             self._user.refresh_credentials()
+
+    def _initialize_websockets(self):
+        # Generate the certificates
+        framework = sgtk.platform.import_framework("tk-framework-desktopserver", "tk_framework_desktopserver")
+
+        class _DesktopCertificateGeneration(framework.CertificateGeneration):
+            def _prompt(self, message):
+                QtGui.QMessageBox.information(None, "Shotgun Desktop Browser Integration", message)
+
+            def _failure(self, message):
+                QtGui.QMessageBox.critical(None, "Shotgun Desktop Browser Integration", message)
+
+        certificate_location = "/Users/jfboismenu/Library/Caches/Shotgun/desktop/config/certificates"
+        _DesktopCertificateGeneration().generate(certificate_location)
+
+        if "shotgunstudio.com" not in self.get_current_user().host:
+            default_whitelist = self.get_current_user().host()
+        else:
+            default_whitelist = "*.shotgunstudio.com"
+
+        self._server = framework.Server(
+            certificate_location,
+            port=self._engine.get_setting("port", 9000),
+            low_level_debug=self._engine.get_setting("low_level_debug", False),
+            # Get the whitelist. If no whitelist is set, use the default one and add our current site.
+            whitelist=self._engine.get_setting("whitelist", default_whitelist)
+        )
+        self._server.start()
 
 
 class KeyedDefaultDict(collections.defaultdict):
