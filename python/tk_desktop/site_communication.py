@@ -60,4 +60,4 @@ class SiteCommunication(QtCore.QObject, CommunicationBase):
         :param msg: Message to log.
         :param args: Arguments to log.
         """
-        self._engine._logger.log(level, "[PROXY] %s" % msg, *args)
+        self._engine.logger.log(level, "[PROXY] %s" % msg, *args)

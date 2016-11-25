@@ -81,8 +81,8 @@ class DesktopEngine(Engine):
         raise AttributeError("'%s' object has no attribute '%s'" % (self.__class__.__name__, attr))
 
     def _emit_log_message(self, handler, record):
-        if self.__impl is not None:
-            return self.__impl._emit_log_message(handler, record)
+        # FIXME: Need to forward to the desktop console
+        pass
 
     ##########################################################################################
     # pyside / qt

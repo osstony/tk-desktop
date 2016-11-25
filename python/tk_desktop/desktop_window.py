@@ -100,7 +100,7 @@ class DesktopWindow(SystrayWindow):
         # Setup the console
         self.__console = Console()
         self.__console_handler = ConsoleLogHandler(self.__console)
-        engine.add_logging_handler(self.__console_handler)
+        #engine.add_logging_handler(self.__console_handler)
 
         # User menu
         ###########################

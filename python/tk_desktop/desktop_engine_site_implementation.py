@@ -84,7 +84,7 @@ class DesktopEngineSiteImplementation(object):
             # add the traceback if available
             if tb is not None:
                 message += "\n\n%s" % tb
-            self._engine.log_error(message)
+            self._engine.logger.error(message)
 
     def _on_proxy_closing(self):
         """
@@ -103,7 +103,7 @@ class DesktopEngineSiteImplementation(object):
         """ GUI side handler for the add_command call. """
         from tank.platform.qt import QtGui
 
-        self._engine.log_debug("register_command(%s, %s)", name, properties)
+        self._engine.logger.debug("register_command(%s, %s)", name, properties)
 
         command_type = properties.get("type")
         command_icon = properties.get("icon")
@@ -114,7 +114,7 @@ class DesktopEngineSiteImplementation(object):
             if os.path.exists(command_icon):
                 icon = QtGui.QIcon(command_icon)
             else:
-                self._engine.log_error(
+                self._engine.logger.error(
                     "Icon for command '%s' not found: '%s'" % (name, command_icon))
 
         title = properties.get("title", name)
@@ -149,7 +149,7 @@ class DesktopEngineSiteImplementation(object):
                 template = DisplayNameTemplate(collapse_rule["match"])
                 match = template.match(title)
                 if match is not None:
-                    self._engine.log_debug("matching %s against %s" % (title, collapse_rule["match"]))
+                    self._engine.logger.debug("matching %s against %s" % (title, collapse_rule["match"]))
                     if collapse_rule["menu_label"] == "None":
                         menu_name = None
                     else:
@@ -297,7 +297,7 @@ class DesktopEngineSiteImplementation(object):
         try:
             from python import ShotgunLogin
         except ImportError:
-            self._engine.log_exception("Could not import tk-framework-login")
+            self._engine.logger.exception("Could not import tk-framework-login")
             raise
         else:
             return ShotgunLogin.get_instance_for_namespace("tk-desktop")
@@ -372,7 +372,7 @@ class DesktopEngineSiteImplementation(object):
                 self._is_login_based = False
             else:
                 self._is_login_based = True
-        self._engine.log_debug("login based: %s" % self._is_login_based)
+        self._engine.logger.debug("login based: %s" % self._is_login_based)
 
     def get_current_user(self):
         """
