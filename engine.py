@@ -15,6 +15,8 @@ import traceback
 import sgtk
 from sgtk.platform import Engine
 
+import logging
+
 
 class DesktopEngine(Engine):
     def __init__(self, tk, *args, **kwargs):

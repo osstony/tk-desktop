@@ -14,6 +14,7 @@ import re
 import sys
 import string
 import collections
+import logging
 
 from sgtk.errors import TankEngineInitError
 
@@ -363,8 +364,7 @@ class DesktopEngineSiteImplementation(object):
             )
 
     def _initialize_logging(self):
-        formatter = logging.Formatter("%(asctime)s [SITE   %(levelname) -7s] %(name)s - %(message)s")
-        self._engine._handler.setFormatter(formatter)
+        pass
 
     def log(self, level, msg, *args):
         self._engine.logger.log(level, msg, *args)
